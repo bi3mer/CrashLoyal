@@ -24,17 +24,23 @@ public:
 	void resetFrame();
 
 	void drawWinScreen(int winningSide);
-
+	
 	void render();
 
+	SDL_Renderer* getRenderer() { return gRenderer; };
+
 private: 
+
+	void drawMob(Mob* m, Vec2 centerPixel);
 
 	void drawSquare(float centerX, float centerY, float size);
 	int healthToAlpha(const Entity* e);
 
 	void drawGrid();
 	void drawBG();
-	void drawUI();
+	void drawUIBG();
+
+	void drawUIButtons(std::vector<Mob*> mobsToDraw);
 
 	SDL_Renderer* gRenderer;
 	SDL_Window* gWindow;

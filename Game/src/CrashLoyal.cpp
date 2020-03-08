@@ -107,18 +107,6 @@ int main(int argc, char* args[]) {
             game.tick((float)deltaTSec);
 
             // RENDER
-
-            // TODO: Move the rendering into a separate singleton (like the 
-            // Game singleton)
-
-            // Debug draw waypoints
-            //for (const Waypoint* wp : game.getWaypoints())
-            //{
-            //    drawSquare(wp->pos.x * PIXELS_PER_METER, 
-            //               wp->pos.y * PIXELS_PER_METER, 
-            //               WAYPOINT_SIZE * PIXELS_PER_METER);
-            //}
-
             for (Building* pBuilding : Game::get().getBuildings()) {
                 graphics->drawBuilding(pBuilding);
             }
@@ -133,6 +121,10 @@ int main(int argc, char* args[]) {
             graphics->drawWinScreen(game.checkGameOver());
 
             graphics->render();
+
+            std::vector<Mob*> mobsToDraw;
+            mobsToDraw.push_back(Swordsman());
+            graphics->drawUIButtons(mobsToDraw);
         }
 
     }

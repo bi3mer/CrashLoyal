@@ -38,7 +38,7 @@ Controller_UI::~Controller_UI()
 }
 
 void Controller_UI::tick(float deltaTSec) {
-    while(!events.empty()) {
+    while (!events.empty()) {
         SDL_Event e = events.front();
         events.pop();
 
@@ -48,8 +48,8 @@ void Controller_UI::tick(float deltaTSec) {
             SDL_GetMouseState(&pixelX, &pixelY);
             const Vec2 mousePos((float)(pixelX / PIXELS_PER_METER), (float)(pixelY / PIXELS_PER_METER));
 
-            iEntityStats::MobType mobType = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_LSHIFT] 
-                ? iEntityStats::Archer 
+            iEntityStats::MobType mobType = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_LSHIFT]
+                ? iEntityStats::Archer
                 : iEntityStats::Swordsman;
 
             assert(m_pPlayer);

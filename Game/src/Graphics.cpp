@@ -49,31 +49,33 @@ void Graphics::render() {
 
 void Graphics::resetFrame() {
     drawBG();
-    drawUI();
+    drawUIBG();
+}
+
+void Graphics::drawMob(Mob* m, Vec2 centerPixel) {
+    int alpha = healthToAlpha(m);
+
+    if (m->isNorth())
+        SDL_SetRenderDrawColor(gRenderer, 0xFF, 0x00, 0x00, alpha);
+    else
+        SDL_SetRenderDrawColor(gRenderer, 0x00, 0x00, 0xFF, alpha);
+
+    float squareSize = m->getStats().getSize() * PIXELS_PER_METER;
+
+    drawSquare(centerPixel.x, centerPixel.y, squareSize);
+
+    SDL_Rect stringRect = {
+        (int)(centerPixel.x - (squareSize / 2.f)),
+        (int)(centerPixel.y - (squareSize / 2.f)),
+        (int)squareSize,
+        (int)squareSize
+    };
+    SDL_Color stringColor = { 0, 0, 0, 255 };
+    drawText(m->getStats().getDisplayLetter(), stringRect, stringColor);
 }
 
 void Graphics::drawMob(Mob* m) {
-	int alpha = healthToAlpha(m);
-
-	if (m->isNorth())
-		SDL_SetRenderDrawColor(gRenderer, 0xFF, 0x00, 0x00, alpha);
-	else
-		SDL_SetRenderDrawColor(gRenderer, 0x00, 0x00, 0xFF, alpha);
-
-	float centerX = m->getPosition().x * PIXELS_PER_METER;
-	float centerY = m->getPosition().y * PIXELS_PER_METER;
-	float squareSize = m->getStats().getSize() * PIXELS_PER_METER;
-
-	drawSquare(centerX, centerY, squareSize);
-
-	SDL_Rect stringRect = {
-		(int)(centerX - (squareSize / 2.f)),
-		(int)(centerY - (squareSize / 2.f)),
-		(int)squareSize,
-		(int)squareSize
-	};
-	SDL_Color stringColor = { 0, 0, 0, 255 };
-	drawText(m->getStats().getDisplayLetter(), stringRect, stringColor);
+    drawMob(m, m->getPosition());
 }
 
 
@@ -209,7 +211,7 @@ void Graphics::drawWinScreen(int winningSide) {
     drawText(msg, stringRect, color);
 }
 
-void Graphics::drawUI() {
+void Graphics::drawUIBG() {
     // Draws the rectangle to the right of the play area that contains the UI
 
     SDL_Rect uiRect = {
@@ -220,6 +222,17 @@ void Graphics::drawUI() {
     };
     SDL_SetRenderDrawColor(gRenderer, 0x50, 0x50, 0x50, 100);
     SDL_RenderFillRect(gRenderer, &uiRect);
+
+}
+
+void Graphics::drawUIButtons(std::vector<Mob*> mobsToDraw) {
+    int startingXPix = GAME_GRID_WIDTH * PIXELS_PER_METER;
+    int buttonSizePix = 30;
+    for (unsigned i = 0; i < mobsToDraw.size(); i++) {
+        Mob* m = mobsToDraw[i];
+        
+        drawMob(m, Vec2(startingXPix, i * buttonSizePix));
+    }
 
 
 }
