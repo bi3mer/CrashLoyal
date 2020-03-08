@@ -1,8 +1,7 @@
 #include <algorithm>
 #include "Graphics.h"
 
-
-Graphics* Singleton<Graphics>::s_Obj = NULL;
+iGraphics* Singleton<iGraphics>::s_Obj = NULL;
 
 Graphics::Graphics() {
 	gWindow = SDL_CreateWindow("Crash Loyal", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH_PIXELS, SCREEN_HEIGHT_PIXELS, SDL_WINDOW_SHOWN);
@@ -52,7 +51,8 @@ void Graphics::resetFrame() {
     drawUIBG();
 }
 
-void Graphics::drawMob(Mob* m, Vec2 centerPixel) {
+void Graphics::drawMob(Mob* m) {
+
     int alpha = healthToAlpha(m);
 
     if (m->isNorth())
@@ -60,24 +60,20 @@ void Graphics::drawMob(Mob* m, Vec2 centerPixel) {
     else
         SDL_SetRenderDrawColor(gRenderer, 0x00, 0x00, 0xFF, alpha);
 
+    Vec2 pixelPos = m->getPosition() * PIXELS_PER_METER;
     float squareSize = m->getStats().getSize() * PIXELS_PER_METER;
 
-    drawSquare(centerPixel.x, centerPixel.y, squareSize);
+    drawSquare(pixelPos.x, pixelPos.y, squareSize);
 
     SDL_Rect stringRect = {
-        (int)(centerPixel.x - (squareSize / 2.f)),
-        (int)(centerPixel.y - (squareSize / 2.f)),
+        (int)(m->getPosition().x - (squareSize / 2.f)),
+        (int)(m->getPosition().y - (squareSize / 2.f)),
         (int)squareSize,
         (int)squareSize
     };
     SDL_Color stringColor = { 0, 0, 0, 255 };
     drawText(m->getStats().getDisplayLetter(), stringRect, stringColor);
 }
-
-void Graphics::drawMob(Mob* m) {
-    drawMob(m, m->getPosition());
-}
-
 
 void Graphics::drawSquare(float centerX, float centerY, float size) {
     // Draws a square at the given pixel coorinate
@@ -225,14 +221,28 @@ void Graphics::drawUIBG() {
 
 }
 
-void Graphics::drawUIButtons(std::vector<Mob*> mobsToDraw) {
+void Graphics::drawUIMob(const iEntityStats& mStats, Vec2 pos) {
+
+    float squareSize = mStats.getSize() * PIXELS_PER_METER;
+
+    drawSquare(pos.x, pos.y, squareSize);
+
+    SDL_Rect stringRect = {
+        (int)(pos.x - (squareSize / 2.f)),
+        (int)(pos.y - (squareSize / 2.f)),
+        (int)squareSize,
+        (int)squareSize
+    };
+    SDL_Color stringColor = { 0, 0, 0, 255 };
+    drawText(mStats.getDisplayLetter(), stringRect, stringColor);
+}
+
+void Graphics::drawUIButtons(const std::vector<iEntityStats::MobType> mobsToDraw) {
     int startingXPix = GAME_GRID_WIDTH * PIXELS_PER_METER;
     int buttonSizePix = 30;
     for (unsigned i = 0; i < mobsToDraw.size(); i++) {
-        Mob* m = mobsToDraw[i];
-        
-        drawMob(m, Vec2(startingXPix, i * buttonSizePix));
+        const iEntityStats& mobStats = iEntityStats::getStats(mobsToDraw[i]);
+
+        drawUIMob(mobStats, Vec2(startingXPix, i * buttonSizePix));
     }
-
-
 }

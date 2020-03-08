@@ -25,6 +25,7 @@
 #include "Building.h"
 #include "Game.h"
 #include "Graphics.h"
+#include "iGraphics.h"
 #include "Mob.h"
 #include "Player.h"
 #include "Vec2.h"
@@ -49,7 +50,7 @@
 Graphics* graphics;
 
 bool init() {
-    graphics = &Graphics::get();
+    graphics = new Graphics();
     return true;
 }
 
@@ -62,6 +63,7 @@ void close() {
 
 int main(int argc, char* args[]) {
     Game& game = Game::get();
+    new Graphics();
     //Start up SDL and create window
     if (!init()) {
         printf("Failed to initialize!\n");
@@ -122,9 +124,9 @@ int main(int argc, char* args[]) {
 
             graphics->render();
 
-            std::vector<Mob*> mobsToDraw;
-            mobsToDraw.push_back(Swordsman());
-            graphics->drawUIButtons(mobsToDraw);
+            //std::vector<Mob*> mobsToDraw;
+            //mobsToDraw.push_back(Swordsman());
+            //graphics->drawUIButtons(mobsToDraw);
         }
 
     }

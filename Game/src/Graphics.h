@@ -1,13 +1,14 @@
 #pragma once
 
 #include "Building.h"
+#include "iGraphics.h"
 #include "Mob.h"
 #include "SDL.h"
 #include "SDL_image.h"
 #include "SDL_ttf.h"
 #include "Singleton.h"
 
-class Graphics : public Singleton<Graphics> {
+class Graphics : iGraphics {
 	/**
 	 * Houses the logic for drawing the game to the screen.
 	 * Acts as a StringBuilder but for images drawn the the canvas.
@@ -29,9 +30,9 @@ public:
 
 	SDL_Renderer* getRenderer() { return gRenderer; };
 
-private: 
+	virtual void drawUIButtons(const std::vector<iEntityStats::MobType> mobsToDraw);
 
-	void drawMob(Mob* m, Vec2 centerPixel);
+private: 
 
 	void drawSquare(float centerX, float centerY, float size);
 	int healthToAlpha(const Entity* e);
@@ -40,7 +41,7 @@ private:
 	void drawBG();
 	void drawUIBG();
 
-	void drawUIButtons(std::vector<Mob*> mobsToDraw);
+	void drawUIMob(const iEntityStats& mStats, Vec2 pos);
 
 	SDL_Renderer* gRenderer;
 	SDL_Window* gWindow;

@@ -19,9 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="iGraphics.h" />
     <ClInclude Include="src\Constants.h" />
     <ClInclude Include="src\iController.h" />
+    <ClInclude Include="src\iGraphics.h" />
     <ClInclude Include="src\iPlayer.h" />
     <ClInclude Include="src\EntityStats.h" />
     <ClInclude Include="src\Singleton.h" />

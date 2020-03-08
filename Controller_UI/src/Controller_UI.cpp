@@ -24,6 +24,7 @@
 
 #include "Constants.h"
 #include "EntityStats.h"
+#include "iGraphics.h"
 #include "iPlayer.h"
 #include "Vec2.h"
 
@@ -54,6 +55,11 @@ void Controller_UI::tick(float deltaTSec) {
 
             assert(m_pPlayer);
             m_pPlayer->placeMob(mobType, mousePos);
+
+            const std::vector<iEntityStats::MobType> mobsToDraw =  m_pPlayer->GetAvailableMobTypes();
+            //iGraphics::drawUIButtons(mobsToDraw);
+            iGraphics::get().drawUIButtons(mobsToDraw);
+            
         }
     }
 }
