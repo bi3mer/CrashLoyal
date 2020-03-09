@@ -23,14 +23,10 @@
 #pragma once
 
 #include "Singleton.h"
-
+#include "Vec2.h"
 #include <vector>
 
-#include "Vec2.h"
-#include "Waypoint.h"
-
 class Building;
-enum BuildingType;
 class iController;
 class Mob;
 class Player;
@@ -45,28 +41,23 @@ public:
 
     Player& getPlayer(bool bNorth) { return bNorth ? *m_pNorthPlayer : *m_pSouthPlayer; }
 
-    const std::vector<Waypoint*>& getWaypoints() const { return m_Waypoints; }
-    const std::vector<Mob*>& getMobs() const { return m_Mobs; }
-    const std::vector<Building*>& getBuildings() { return m_Buildings; }
-
-    void addMob(Mob* mob) { m_Mobs.push_back(mob); }    // takes ownership
+    const std::vector<Vec2>& getWaypoints() const { return m_Waypoints; }
 
     int checkGameOver();
 
 private:
-    // Helpers for the constructor
     void buildPlayers(iController* pNorthControl, iController* pSouthControl);
+
     void buildWaypoints();
-    void buildBuildings();
+    void addFourWaypoints(Vec2 pt);
 
 private:
     Player* m_pNorthPlayer;
     Player* m_pSouthPlayer;
 
-    std::vector<Waypoint*> m_Waypoints;         // owned
-    std::vector<Building*> m_Buildings;         // owned
-    std::vector<Mob*> m_Mobs;                   // owned
+    std::vector<Vec2> m_Waypoints;
 
-    int gameOverState; // Negative => South won, Positive => North won, 0 => no winner yet
+    // Negative => South won, Positive => North won, 0 => no winner yet
+    int gameOverState; 
 };
 

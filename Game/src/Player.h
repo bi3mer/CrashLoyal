@@ -29,6 +29,7 @@
 #include <assert.h>
 
 class iController;
+class Entity;
 
 class Player : public iPlayer {
 public:
@@ -36,18 +37,49 @@ public:
     explicit Player(iController* pControl, bool bNorth);
     virtual ~Player();
 
+    virtual bool isNorth() const { return m_bNorth; }
+
     virtual float getElixir() const { return (float)m_Elixir; }
     virtual const std::vector<iEntityStats::MobType>& GetAvailableMobTypes() const { return m_AvailableMobs; }
     virtual PlacementResult placeMob(iEntityStats::MobType type, const Vec2& pos);
 
     void tick(float deltaTSec);
 
+    const std::vector<Entity*>& getBuildings() const { return m_Buildings; }
+    const std::vector<Entity*>& getMobs() const { return m_Mobs; }
+
+    virtual unsigned int getNumBuildings() const { return m_Buildings.size(); }
+    virtual EntityData getBuilding(unsigned int i) const;
+
+    virtual unsigned int getNumMobs() const { return m_Mobs.size(); }
+    virtual EntityData getMob(unsigned int i) const;
+
+    virtual unsigned int getNumOpponentBuildings() const { return GetOpponent().getNumBuildings(); }
+    virtual EntityData getOpponentBuilding(unsigned int i) const;
+
+    virtual unsigned int getNumOpponentMobs() const { return GetOpponent().getNumMobs(); }
+    virtual EntityData getOpponentMob(unsigned int i) const;
+
 private:
+    void buildBuildings();
+
+    const Player& GetOpponent() const;
+
     float capElixir(float e) const { return std::max(e, MAX_ELIXIR); }
 
 private:
-    iController* m_pControl;    // owned, may be NULL
+    iController* m_pControl;                // owned, may be NULL
+
     bool m_bNorth;
     float m_Elixir;
+
     std::vector<iEntityStats::MobType> m_AvailableMobs;
+
+    std::vector<Entity*> m_Buildings;       // owned
+    std::vector<Entity*> m_Mobs;            // owned
+
+    // When mobs die, we move them to this vector.  For now we just hang on to 
+    // them forever - we never delete them - so as to avoid memory issues.
+    std::vector<Entity*> m_DeadMobs;        // owned
+
 };

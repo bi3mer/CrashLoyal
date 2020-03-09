@@ -20,50 +20,29 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+#include "Building.h"
 #include "Constants.h"
 #include "Controller_UI.h"
-#include "Building.h"
 #include "Game.h"
 #include "Graphics.h"
 #include "iGraphics.h"
 #include "Mob.h"
 #include "Player.h"
-#include "Vec2.h"
-#include "Waypoint.h"
 
-#include "SDL.h"
-#include "SDL_image.h"
-#include "SDL_ttf.h"
-
-#include <algorithm>
-#include <assert.h>
-#include <cmath>
-#include <iostream>
-#include <time.h>
 #include <chrono>
-#include <memory>
-#include <stdio.h>
-#include <string>
-#include <vector>
-
-
-Graphics* graphics;
 
 bool init() {
-    graphics = new Graphics();
     return true;
 }
 
 void close() {
-    graphics->~Graphics();
-
     IMG_Quit();
     SDL_Quit();
 }
 
 int main(int argc, char* args[]) {
     Game& game = Game::get();
-    new Graphics();
+    Graphics& graphics = *dynamic_cast<Graphics*>(&iGraphics::get());
     //Start up SDL and create window
     if (!init()) {
         printf("Failed to initialize!\n");
@@ -90,7 +69,7 @@ int main(int argc, char* args[]) {
 
             prevTime = now;
 
-            graphics->resetFrame();
+            graphics.resetFrame();
 
             // TICK 
 
@@ -109,26 +88,34 @@ int main(int argc, char* args[]) {
             game.tick((float)deltaTSec);
 
             // RENDER
-            for (Building* pBuilding : Game::get().getBuildings()) {
-                graphics->drawBuilding(pBuilding);
+            Player& northPlayer = game.getPlayer(true);
+            Player& southPlayer = game.getPlayer(false);
+
+            for (Entity* pBuilding : northPlayer.getBuildings()) {
+                graphics.drawBuilding(pBuilding);
             }
 
-            for (Mob* m : game.getMobs()) {
+            for (Entity* pBuilding : southPlayer.getBuildings()) {
+                graphics.drawBuilding(pBuilding);
+            }
+
+            for (Entity* m : northPlayer.getMobs()) {
                 if (!m->isDead()) {
-                    graphics->drawMob(m);
+                    graphics.drawMob(m);
+                }
+            }
+
+            for (Entity* m : southPlayer.getMobs()) {
+                if (!m->isDead()) {
+                    graphics.drawMob(m);
                 }
             }
 
             // If there is a winner, draw the message to the screen
-            graphics->drawWinScreen(game.checkGameOver());
+            graphics.drawWinScreen(game.checkGameOver());
 
-            graphics->render();
-
-            //std::vector<Mob*> mobsToDraw;
-            //mobsToDraw.push_back(Swordsman());
-            //graphics->drawUIButtons(mobsToDraw);
+            graphics.render();
         }
-
     }
 
     close();

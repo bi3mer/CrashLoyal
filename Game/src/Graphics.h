@@ -1,8 +1,7 @@
 #pragma once
 
-#include "Building.h"
 #include "iGraphics.h"
-#include "Mob.h"
+#include "Entity.h"
 #include "SDL.h"
 #include "SDL_image.h"
 #include "SDL_ttf.h"
@@ -18,9 +17,9 @@ public:
 	Graphics();
 	virtual ~Graphics();  //SDL_DestroyRenderer(gRenderer);
 
-	void drawMob(Mob* m);
+	void drawMob(Entity* m);
 	void drawText(const char* textToDraw, SDL_Rect messageRect, SDL_Color color);
-	void drawBuilding(Building* b);
+	void drawBuilding(Entity* b);
 
 	void resetFrame();
 

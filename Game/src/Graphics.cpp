@@ -1,5 +1,6 @@
-#include <algorithm>
 #include "Graphics.h"
+#include "Constants.h"
+#include <algorithm>
 
 iGraphics* Singleton<iGraphics>::s_Obj = NULL;
 
@@ -51,28 +52,29 @@ void Graphics::resetFrame() {
     drawUIBG();
 }
 
-void Graphics::drawMob(Mob* m) {
 
-    int alpha = healthToAlpha(m);
+void Graphics::drawMob(Entity* m) {
+	int alpha = healthToAlpha(m);
 
-    if (m->isNorth())
-        SDL_SetRenderDrawColor(gRenderer, 0xFF, 0x00, 0x00, alpha);
-    else
-        SDL_SetRenderDrawColor(gRenderer, 0x00, 0x00, 0xFF, alpha);
+	if (m->isNorth())
+		SDL_SetRenderDrawColor(gRenderer, 0xFF, 0x00, 0x00, alpha);
+	else
+		SDL_SetRenderDrawColor(gRenderer, 0x00, 0x00, 0xFF, alpha);
 
-    Vec2 pixelPos = m->getPosition() * PIXELS_PER_METER;
-    float squareSize = m->getStats().getSize() * PIXELS_PER_METER;
+	float centerX = m->getPosition().x * PIXELS_PER_METER;
+	float centerY = m->getPosition().y * PIXELS_PER_METER;
+	float squareSize = m->getStats().getSize() * PIXELS_PER_METER;
 
-    drawSquare(pixelPos.x, pixelPos.y, squareSize);
+	drawSquare(centerX, centerY, squareSize);
 
-    SDL_Rect stringRect = {
-        (int)(m->getPosition().x - (squareSize / 2.f)),
-        (int)(m->getPosition().y - (squareSize / 2.f)),
-        (int)squareSize,
-        (int)squareSize
-    };
-    SDL_Color stringColor = { 0, 0, 0, 255 };
-    drawText(m->getStats().getDisplayLetter(), stringRect, stringColor);
+	SDL_Rect stringRect = {
+		(int)(centerX - (squareSize / 2.f)),
+		(int)(centerY - (squareSize / 2.f)),
+		(int)squareSize,
+		(int)squareSize
+	};
+	SDL_Color stringColor = { 0, 0, 0, 255 };
+	drawText(m->getStats().getDisplayLetter(), stringRect, stringColor);
 }
 
 void Graphics::drawSquare(float centerX, float centerY, float size) {
@@ -93,7 +95,7 @@ int Graphics::healthToAlpha(const Entity* e)
     return (int)(((health / maxHealth) * 200.f) + 55.f);
 }
 
-void Graphics::drawBuilding(Building* b) {
+void Graphics::drawBuilding(Entity* b) {
     int alpha = healthToAlpha(b);
 
     if (b->isDead())
@@ -171,8 +173,8 @@ void Graphics::drawBG() {
 
     // Draw bridges
     SDL_Rect bridgeLeft = {
-        (int)(LEFT_BRIDGE_CENTER_X - (BRIDGE_WIDTH / 2.0)) * PIXELS_PER_METER,
-        (int)(LEFT_BRIDGE_CENTER_Y - (BRIDGE_HEIGHT / 2.0)) * PIXELS_PER_METER,
+        (int)((LEFT_BRIDGE_CENTER_X - (BRIDGE_WIDTH / 2.f)) * PIXELS_PER_METER),
+        (int)((BRIDGE_CENTER_Y - (BRIDGE_HEIGHT / 2.0)) * PIXELS_PER_METER),
         (int)(BRIDGE_WIDTH * PIXELS_PER_METER),
         (int)(BRIDGE_HEIGHT * PIXELS_PER_METER)
     };
@@ -181,8 +183,8 @@ void Graphics::drawBG() {
 
 
     SDL_Rect bridgeRight = {
-        (int)(RIGHT_BRIDGE_CENTER_X - (BRIDGE_WIDTH / 2.0)) * PIXELS_PER_METER,
-        (int)(RIGHT_BRIDGE_CENTER_Y - (BRIDGE_HEIGHT / 2.0)) * PIXELS_PER_METER,
+        (int)((RIGHT_BRIDGE_CENTER_X - (BRIDGE_WIDTH / 2.0)) * PIXELS_PER_METER),
+        (int)((BRIDGE_CENTER_Y - (BRIDGE_HEIGHT / 2.0)) * PIXELS_PER_METER),
         (int)(BRIDGE_WIDTH * PIXELS_PER_METER),
         (int)(BRIDGE_HEIGHT * PIXELS_PER_METER)
     };

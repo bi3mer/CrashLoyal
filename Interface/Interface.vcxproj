@@ -29,6 +29,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\EntityStats.cpp" />
+    <ClCompile Include="src\iPlayer.cpp" />
     <ClCompile Include="src\Vec2.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
