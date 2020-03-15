@@ -104,10 +104,11 @@ protected:
 	////////////////////////////////////////////////////////////
 	// Collisions
 
-	bool isCollision(std::shared_ptr<Mob> mob);
+	bool isCollision(float x2, float y2, float s2);
 	std::vector<ObjectData> checkCollision();
 
-	void processCollision(std::vector<ObjectData> objects, double elapsedTime);
+	Point processCollision(std::vector<ObjectData> objects);
+	void handleCollisions();
 
 	// Collisions
 	///////////////////////////////////////////////
@@ -116,6 +117,10 @@ protected:
 	void attackProcedure(double elapsedTime);
 
 	void moveProcedure(double elapsedTime);
-	Point collisionPoint;
+	Point mobCollisionPoint;
+	Point buildingCollisionPoint;
+	Point riverCollisionPoint;
+
+	void updateMovementVector(Point* movementVector, Point* collision, float weight);
 };
 

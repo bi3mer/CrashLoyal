@@ -77,6 +77,11 @@ public:
 		return insideOf(*this, radius, other);
 	}
 
+	bool isZero()
+	{
+		return this->x == 0.0 && this->y == 0.0;
+	}
+
 	void reset()
 	{
 		this->x = 0;

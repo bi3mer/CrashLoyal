@@ -73,19 +73,19 @@ void Mob::moveTowards(std::shared_ptr<Point> moveTarget, double elapsedTime) {
 	movementVector.y = moveTarget->y - this->pos.y;
 	movementVector.normalize();
 
-	if (collisionPoint.x != 0.0 || collisionPoint.y != 0.0)
+	if (mobCollisionPoint.isZero() == false)
 	{
-		Point collisionVector;
-		collisionVector.x = this->collisionPoint.x - this->pos.x;
-		collisionVector.y = this->collisionPoint.y - this->pos.y;
-		collisionVector.normalize();
+		this->updateMovementVector(&movementVector, &mobCollisionPoint, 2.0);
+	}
 
-		// we don't want a collision to have as much weight as movement.
-		collisionVector.x /= 2.0;
-		collisionVector.y /= 2.0;
+	if (buildingCollisionPoint.isZero() == false)
+	{
+		this->updateMovementVector(&movementVector, &buildingCollisionPoint, 0.01);
+	}
 
-		movementVector += collisionVector;
-		movementVector.normalize();
+	if (riverCollisionPoint.isZero() == false)
+	{
+		this->updateMovementVector(&movementVector, &riverCollisionPoint, 0.01);
 	}
 
 	movementVector *= (float)this->GetSpeed();
@@ -165,22 +165,15 @@ bool Mob::targetInRange() {
 ////////////////////////////////////////////////////////////
 // Collisions
 
-bool Mob::isCollision(std::shared_ptr<Mob> mob)
+bool Mob::isCollision(float x2, float y2, float s2)
 {	
 	float x1 = pos.x;
 	float y1 = pos.y;
 	float s1 = this->GetSize();
 
-	float x2 = mob->pos.x;
-	float y2 = mob->pos.y;
-	float s2 = mob->GetSize();
-
 	return abs(x1 - x2) < s1 + s2 && abs(y1 - y2) < s1 + s2;
 }
 
-// PROJECT 3: 
-//  1) return a vector of mobs that we're colliding with
-//  2) handle collision with towers & river 
 std::vector<ObjectData> Mob::checkCollision() 
 {
 	std::vector<ObjectData> objects;
@@ -189,7 +182,7 @@ std::vector<ObjectData> Mob::checkCollision()
 		// don't collide with yourself
 		if (this->sameMob(otherMob)) { continue; }
 
-		if (isCollision(otherMob))
+		if (isCollision(otherMob->pos.x, otherMob->pos.y, otherMob->GetSize()))
 		{
 			ObjectData obj;
 			obj.pos = otherMob->pos;
@@ -201,7 +194,16 @@ std::vector<ObjectData> Mob::checkCollision()
 
 	for (std::shared_ptr<Building> building : GameState::buildings)
 	{
-		// @TODO: buildings
+		Point p = building->getPoint();
+		int size = building->GetSize();
+
+		if (isCollision(p.x, p.y, size))
+		{
+			ObjectData obj;
+			obj.pos = p;
+			obj.size = size;
+			obj.weight = 1000.0;
+		}
 	}
 
 	// @TODO: river
@@ -209,28 +211,71 @@ std::vector<ObjectData> Mob::checkCollision()
 	return objects;
 }
 
-// note to self: use move towards
-void Mob::processCollision(std::vector<ObjectData> objects, double elapsedTime) 
+Point Mob::processCollision(std::vector<ObjectData> objects) 
 {
-	this->collisionPoint.reset();
+	Point target(0,0);
 
 	for (ObjectData obj : objects)
 	{
 		Point p(this->pos.x - obj.pos.x, this->pos.y - obj.pos.y);
 		p.normalize();
 
-		this->collisionPoint.x += p.x * obj.weight;
-		this->collisionPoint.y += p.y * obj.weight;
+		target.x += p.x * obj.weight;
+		target.y += p.y * obj.weight;
 	}
 
-	if (this->collisionPoint.x != 0 || this->collisionPoint.y != 0)
+	if (target.isZero() == false)
 	{
-		this->collisionPoint.normalize();
-		this->collisionPoint.x += this->pos.x;
-		this->collisionPoint.y += this->pos.y;
+		target.normalize();
+		target.x += this->pos.x;
+		target.y += this->pos.y;
 	}
 
-	this->collisionPoint.print();
+	return target;
+}
+
+void Mob::handleCollisions()
+{
+	// mobs
+	std::vector<ObjectData> objects;
+	for (std::shared_ptr<Mob> otherMob : GameState::mobs)
+	{
+		// don't collide with yourself
+		if (this->sameMob(otherMob)) { continue; }
+
+		if (isCollision(otherMob->pos.x, otherMob->pos.y, otherMob->GetSize()))
+		{
+			ObjectData obj;
+			obj.pos = otherMob->pos;
+			obj.size = otherMob->GetSize();
+			obj.weight = 1.0;
+			objects.push_back(obj);
+		}
+	}
+
+	mobCollisionPoint = processCollision(objects);
+
+	// buildings
+	objects.clear();
+	for (std::shared_ptr<Building> building : GameState::buildings)
+	{
+		Point p = building->getPoint();
+		int size = building->GetSize() / 1.7; // gave best looking result
+
+		if (isCollision(p.x, p.y, size))
+		{
+			ObjectData obj;
+			obj.pos = p;
+			obj.size = size;
+			obj.weight = 1;
+
+			objects.push_back(obj);
+		}
+	}
+
+	buildingCollisionPoint = processCollision(objects);
+
+	// @TODO: river
 }
 
 // Collisions
@@ -247,6 +292,7 @@ void Mob::attackProcedure(double elapsedTime) {
 
 	if (targetInRange()) {
 		if (this->lastAttackTime >= this->GetAttackTime()) {
+			std::cout << "attacking!" << std::endl;
 			// If our last attack was longer ago than our cooldown
 			this->target->attack(this->GetDamage());
 			this->lastAttackTime = 0; // lastAttackTime is incremented in the main update function
@@ -282,13 +328,25 @@ void Mob::moveProcedure(double elapsedTime)
 	}
 }
 
+void Mob::updateMovementVector(Point* movementVector, Point* collision, float weight)
+{
+	Point point;
+	point.x = collision->x - this->pos.x;
+	point.y = collision->y - this->pos.y;
+	point.normalize();
+
+	// we don't want a collision to have as much weight as movement.
+	point.x /= weight;
+	point.y /= weight;
+
+	movementVector->x += point.x;
+	movementVector->y += point.y;
+	movementVector->normalize();
+}
+
 void Mob::update(double elapsedTime) 
 {
-	std::vector<ObjectData> objects = this->checkCollision();
-	if (objects.size() != 0)
-	{
-		this->processCollision(objects, elapsedTime);
-	}
+	handleCollisions();
 
 	switch (this->state) {
 	case MobState::Attacking:
