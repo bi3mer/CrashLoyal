@@ -6,6 +6,15 @@
 #include "Waypoint.h"
 #include "Point.h"
 
+// vs wasn't letting me create a new file and import it and I didn't feel like
+// figuring out why
+struct ObjectData
+{
+	Point pos;
+	float size;
+	float weight;
+};
+
 class Mob : public Attackable {
 
 public:
@@ -96,9 +105,9 @@ protected:
 	// Collisions
 
 	bool isCollision(std::shared_ptr<Mob> mob);
-	std::vector<std::shared_ptr<Mob>> checkCollision();
+	std::vector<ObjectData> checkCollision();
 
-	void processCollision(std::vector<std::shared_ptr<Mob>> otherMob, double elapsedTime);
+	void processCollision(std::vector<ObjectData> objects, double elapsedTime);
 
 	// Collisions
 	///////////////////////////////////////////////

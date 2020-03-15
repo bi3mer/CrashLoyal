@@ -181,9 +181,9 @@ bool Mob::isCollision(std::shared_ptr<Mob> mob)
 // PROJECT 3: 
 //  1) return a vector of mobs that we're colliding with
 //  2) handle collision with towers & river 
-std::vector<std::shared_ptr<Mob>> Mob::checkCollision() 
+std::vector<ObjectData> Mob::checkCollision() 
 {
-	std::vector<std::shared_ptr<Mob>> mobs;
+	std::vector<ObjectData> objects;
 	for (std::shared_ptr<Mob> otherMob : GameState::mobs) 
 	{
 		// don't collide with yourself
@@ -191,7 +191,11 @@ std::vector<std::shared_ptr<Mob>> Mob::checkCollision()
 
 		if (isCollision(otherMob))
 		{
-			mobs.push_back(otherMob);
+			ObjectData obj;
+			obj.pos = otherMob->pos;
+			obj.size = otherMob->GetSize();
+			obj.weight = 1.0;
+			objects.push_back(obj);
 		}
 	}
 
@@ -202,21 +206,21 @@ std::vector<std::shared_ptr<Mob>> Mob::checkCollision()
 
 	// @TODO: river
 
-	return mobs;
+	return objects;
 }
 
 // note to self: use move towards
-void Mob::processCollision(std::vector<std::shared_ptr<Mob>> mobs, double elapsedTime) 
+void Mob::processCollision(std::vector<ObjectData> objects, double elapsedTime) 
 {
 	this->collisionPoint.reset();
 
-	for (std::shared_ptr<Mob> mob : mobs)
+	for (ObjectData obj : objects)
 	{
-		Point p(this->pos.x - mob->pos.x, this->pos.y - mob->pos.y);
+		Point p(this->pos.x - obj.pos.x, this->pos.y - obj.pos.y);
 		p.normalize();
 
-		this->collisionPoint.x += p.x;
-		this->collisionPoint.y += p.y;
+		this->collisionPoint.x += p.x * obj.weight;
+		this->collisionPoint.y += p.y * obj.weight;
 	}
 
 	if (this->collisionPoint.x != 0 || this->collisionPoint.y != 0)
@@ -280,10 +284,10 @@ void Mob::moveProcedure(double elapsedTime)
 
 void Mob::update(double elapsedTime) 
 {
-	std::vector<std::shared_ptr<Mob>> mobs = this->checkCollision();
-	if (mobs.size() != 0)
+	std::vector<ObjectData> objects = this->checkCollision();
+	if (objects.size() != 0)
 	{
-		this->processCollision(mobs, elapsedTime);
+		this->processCollision(objects, elapsedTime);
 	}
 
 	switch (this->state) {

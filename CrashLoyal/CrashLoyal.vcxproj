@@ -25,6 +25,7 @@
     <ClCompile Include="src\Mob.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="resource.h" />
     <ClInclude Include="src\Attackable.h" />
     <ClInclude Include="src\Building.h" />
     <ClInclude Include="src\GameState.h" />
@@ -33,6 +34,9 @@
     <ClInclude Include="src\Point.h" />
     <ClInclude Include="src\Mob_Swordsman.h" />
     <ClInclude Include="src\Waypoint.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="CrashLoyal.rc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

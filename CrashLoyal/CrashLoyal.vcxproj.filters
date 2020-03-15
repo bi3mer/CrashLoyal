@@ -25,10 +25,14 @@
     <ClInclude Include="src\Attackable.h">
       <Filter>Mobs</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Mobs">
       <UniqueIdentifier>{7a953e00-6a20-49d7-b381-b0d82cbdcb20}</UniqueIdentifier>
     </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="CrashLoyal.rc" />
   </ItemGroup>
 </Project>
