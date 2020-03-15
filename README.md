@@ -18,6 +18,7 @@ For some concrete examples on how to use SDL, please check out Lazy Foo:
 http://lazyfoo.net/tutorials/SDL/index.php
 
 
-##  HW NOtes
+##  HW Notes
 
-Head branch when I pulled didn't work so I went till I found one that did work on my computer.
+- Head branch when I pulled didn't work so I went till I found one that did work on my computer.
+- Collisions do not have as much weight as target movement in the moveTowards command so that the game flow is prioritized collision management that slows down the game and gets in the way of gameplay.

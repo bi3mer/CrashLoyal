@@ -76,5 +76,16 @@ public:
 	bool insideOf(Point other, float radius) {
 		return insideOf(*this, radius, other);
 	}
+
+	void reset()
+	{
+		this->x = 0;
+		this->y = 0;
+	}
+
+	void print()
+	{
+		std::cout << "(" << this->x << "," << this->y << ")" << std::endl;
+	}
 };
 

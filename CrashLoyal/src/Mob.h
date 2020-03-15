@@ -107,6 +107,6 @@ protected:
 	void attackProcedure(double elapsedTime);
 
 	void moveProcedure(double elapsedTime);
-
+	Point collisionPoint;
 };
 

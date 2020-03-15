@@ -72,6 +72,22 @@ void Mob::moveTowards(std::shared_ptr<Point> moveTarget, double elapsedTime) {
 	movementVector.x = moveTarget->x - this->pos.x;
 	movementVector.y = moveTarget->y - this->pos.y;
 	movementVector.normalize();
+
+	if (collisionPoint.x != 0.0 || collisionPoint.y != 0.0)
+	{
+		Point collisionVector;
+		collisionVector.x = this->collisionPoint.x - this->pos.x;
+		collisionVector.y = this->collisionPoint.y - this->pos.y;
+		collisionVector.normalize();
+
+		// we don't want a collision to have as much weight as movement.
+		collisionVector.x /= 2.0;
+		collisionVector.y /= 2.0;
+
+		movementVector += collisionVector;
+		movementVector.normalize();
+	}
+
 	movementVector *= (float)this->GetSpeed();
 	movementVector *= (float)elapsedTime;
 	pos += movementVector;
@@ -192,22 +208,25 @@ std::vector<std::shared_ptr<Mob>> Mob::checkCollision()
 // note to self: use move towards
 void Mob::processCollision(std::vector<std::shared_ptr<Mob>> mobs, double elapsedTime) 
 {
-	std::shared_ptr<Point> point = std::make_shared<Point>(Point(0, 0));
+	this->collisionPoint.reset();
 
 	for (std::shared_ptr<Mob> mob : mobs)
 	{
 		Point p(this->pos.x - mob->pos.x, this->pos.y - mob->pos.y);
 		p.normalize();
 
-		point->x += p.x;
-		point->y += p.y;
+		this->collisionPoint.x += p.x;
+		this->collisionPoint.y += p.y;
 	}
 
-	point->x += this->pos.x;
-	point->y += this->pos.y;
+	if (this->collisionPoint.x != 0 || this->collisionPoint.y != 0)
+	{
+		this->collisionPoint.normalize();
+		this->collisionPoint.x += this->pos.x;
+		this->collisionPoint.y += this->pos.y;
+	}
 
-	std::cout << point->x << ", " << point->y << std::endl;
-	this->moveTowards(point, elapsedTime);
+	this->collisionPoint.print();
 }
 
 // Collisions
@@ -236,14 +255,8 @@ void Mob::attackProcedure(double elapsedTime) {
 	}
 }
 
-void Mob::moveProcedure(double elapsedTime) {
-	// PROJECT 3: You should not change this code very much, but this is where your 
-	std::vector<std::shared_ptr<Mob>> mobs = this->checkCollision();
-	if (mobs.size() != 0)
-	{
-		this->processCollision(mobs, elapsedTime);
-	}
-
+void Mob::moveProcedure(double elapsedTime) 
+{
 	if (targetPosition)
 	{
 		moveTowards(targetPosition, elapsedTime);
@@ -265,7 +278,13 @@ void Mob::moveProcedure(double elapsedTime) {
 	}
 }
 
-void Mob::update(double elapsedTime) {
+void Mob::update(double elapsedTime) 
+{
+	std::vector<std::shared_ptr<Mob>> mobs = this->checkCollision();
+	if (mobs.size() != 0)
+	{
+		this->processCollision(mobs, elapsedTime);
+	}
 
 	switch (this->state) {
 	case MobState::Attacking:
