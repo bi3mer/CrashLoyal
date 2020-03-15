@@ -80,12 +80,12 @@ void Mob::moveTowards(std::shared_ptr<Point> moveTarget, double elapsedTime) {
 
 	if (buildingCollisionPoint.isZero() == false)
 	{
-		this->updateMovementVector(&movementVector, &buildingCollisionPoint, 0.01);
+		this->updateMovementVector(&movementVector, &buildingCollisionPoint, 0.5);
 	}
 
 	if (riverCollisionPoint.isZero() == false)
 	{
-		this->updateMovementVector(&movementVector, &riverCollisionPoint, 0.01);
+		this->updateMovementVector(&movementVector, &riverCollisionPoint, 0.1);
 	}
 
 	movementVector *= (float)this->GetSpeed();
@@ -165,7 +165,7 @@ bool Mob::targetInRange() {
 ////////////////////////////////////////////////////////////
 // Collisions
 
-bool Mob::isCollision(float x2, float y2, float s2)
+bool Mob::isSquareCollision(float x2, float y2, float s2)
 {	
 	float x1 = pos.x;
 	float y1 = pos.y;
@@ -174,42 +174,29 @@ bool Mob::isCollision(float x2, float y2, float s2)
 	return abs(x1 - x2) < s1 + s2 && abs(y1 - y2) < s1 + s2;
 }
 
-std::vector<ObjectData> Mob::checkCollision() 
+bool Mob::isRectangleCollision(float x2, float y2, float w2, float h2)
 {
-	std::vector<ObjectData> objects;
-	for (std::shared_ptr<Mob> otherMob : GameState::mobs) 
-	{
-		// don't collide with yourself
-		if (this->sameMob(otherMob)) { continue; }
+	float x1 = pos.x;
+	float y1 = pos.y;
+	float w1 = GetSize();
+	float h1 = GetSize();
 
-		if (isCollision(otherMob->pos.x, otherMob->pos.y, otherMob->GetSize()))
-		{
-			ObjectData obj;
-			obj.pos = otherMob->pos;
-			obj.size = otherMob->GetSize();
-			obj.weight = 1.0;
-			objects.push_back(obj);
-		}
-	}
+	Point corner1(x1 - w1, y1 - h1);
+	Point corner2(x1 + w1, y1 - h1);
+	Point corner3(x1 - w1, y1 + h1);
+	Point corner4(x1 + w1, y1 + h1);
 
-	for (std::shared_ptr<Building> building : GameState::buildings)
-	{
-		Point p = building->getPoint();
-		int size = building->GetSize();
+	float x2min = x2 - w2;
+	float x2max = x2 + w2;
+	float y2min = y2 - h2;
+	float y2max = y2 + h2;
 
-		if (isCollision(p.x, p.y, size))
-		{
-			ObjectData obj;
-			obj.pos = p;
-			obj.size = size;
-			obj.weight = 1000.0;
-		}
-	}
-
-	// @TODO: river
-
-	return objects;
+	return corner1.inRectangle(x2min, x2max, y2min, y2max) || 
+		   corner2.inRectangle(x2min, x2max, y2min, y2max) || 
+		   corner3.inRectangle(x2min, x2max, y2min, y2max) || 
+		   corner4.inRectangle(x2min, x2max, y2min, y2max);
 }
+
 
 Point Mob::processCollision(std::vector<ObjectData> objects) 
 {
@@ -243,7 +230,7 @@ void Mob::handleCollisions()
 		// don't collide with yourself
 		if (this->sameMob(otherMob)) { continue; }
 
-		if (isCollision(otherMob->pos.x, otherMob->pos.y, otherMob->GetSize()))
+		if (isSquareCollision(otherMob->pos.x, otherMob->pos.y, otherMob->GetSize()))
 		{
 			ObjectData obj;
 			obj.pos = otherMob->pos;
@@ -260,9 +247,9 @@ void Mob::handleCollisions()
 	for (std::shared_ptr<Building> building : GameState::buildings)
 	{
 		Point p = building->getPoint();
-		int size = building->GetSize() / 1.7; // gave best looking result
+		float size = building->GetSize() / 1.7; // gave best looking result
 
-		if (isCollision(p.x, p.y, size))
+		if (isSquareCollision(p.x, p.y, size))
 		{
 			ObjectData obj;
 			obj.pos = p;
@@ -275,7 +262,56 @@ void Mob::handleCollisions()
 
 	buildingCollisionPoint = processCollision(objects);
 
-	// @TODO: river
+	// river
+	objects.clear();
+
+	// test to see if mob is in the river based on y coordinates
+	if (pos.y >= RIVER_TOP_Y && pos.y <= RIVER_BOT_Y) 
+	{
+		// test to see if the mob is on a bridge
+		if (!isRectangleCollision(
+				LEFT_BRIDGE_CENTER_X,
+				LEFT_BRIDGE_CENTER_Y,
+				BRIDGE_WIDTH / 6.0,
+				BRIDGE_HEIGHT) &&
+			!isRectangleCollision(
+				RIGHT_BRIDGE_CENTER_X,
+				RIGHT_BRIDGE_CENTER_Y,
+				BRIDGE_WIDTH / 6.0,
+				BRIDGE_HEIGHT))
+		{
+			// find where replusion force should come from such that they will go 
+			// towards the bridge that they need to get to. The y coordinate can be
+			// either center without issue.
+			float targetX;
+			if (pos.x < LEFT_BRIDGE_CENTER_X)
+			{
+				targetX = RIVER_LEFT_X;
+			}
+			else if (pos.x > RIGHT_BRIDGE_CENTER_X)
+			{
+				targetX = RIVER_RIGHT_X;
+			}
+			else if (abs(pos.x - RIVER_RIGHT_X) > abs(pos.x - RIVER_LEFT_X))
+			{
+				targetX = RIGHT_BRIDGE_CENTER_X;
+			}
+			else
+			{
+				targetX = LEFT_BRIDGE_CENTER_X;
+			}
+
+			// add to list
+			ObjectData obj;
+			obj.pos = Point(targetX, RIGHT_BRIDGE_CENTER_Y);
+			obj.size = 1;
+			obj.weight = 1;
+
+			objects.push_back(obj);
+		}
+	}
+
+	riverCollisionPoint = processCollision(objects);
 }
 
 // Collisions
@@ -292,7 +328,6 @@ void Mob::attackProcedure(double elapsedTime) {
 
 	if (targetInRange()) {
 		if (this->lastAttackTime >= this->GetAttackTime()) {
-			std::cout << "attacking!" << std::endl;
 			// If our last attack was longer ago than our cooldown
 			this->target->attack(this->GetDamage());
 			this->lastAttackTime = 0; // lastAttackTime is incremented in the main update function

@@ -104,8 +104,8 @@ protected:
 	////////////////////////////////////////////////////////////
 	// Collisions
 
-	bool isCollision(float x2, float y2, float s2);
-	std::vector<ObjectData> checkCollision();
+	bool isSquareCollision(float x2, float y2, float s2);
+	bool isRectangleCollision(float x2, float y2, float w, float h);
 
 	Point processCollision(std::vector<ObjectData> objects);
 	void handleCollisions();

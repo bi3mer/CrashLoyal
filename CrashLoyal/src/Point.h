@@ -92,5 +92,10 @@ public:
 	{
 		std::cout << "(" << this->x << "," << this->y << ")" << std::endl;
 	}
+
+	bool inRectangle(float xmin, float xmax, float ymin, float ymax)
+	{
+		return x > xmin && x < xmax && y > ymin && y < ymax;
+	}
 };
 
